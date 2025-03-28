@@ -11,8 +11,8 @@ API para sistema de mentoria com NestJS e Prisma usando SQLite para simplificar 
 ## 🛠️ Instalação
 
 ```bash
-git clone [url-do-repositorio]
-cd [nome-da-pasta]
+git clone [https://github.com/danielSramos/mentor-api-ts]
+cd [mentor-api-ts]
 npm install
 npx prisma generate
 npx prisma migrate dev --name init
