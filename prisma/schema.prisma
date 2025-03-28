@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Permissions {
+  id                  String               @id @map("id")
+  permission          String               @map("permission")
+  created_at          DateTime             @default(now()) @map("created_at")
+  updated_at          DateTime             @updatedAt @map("updated_at")
+  profile_permissions ProfilePermissions[]
+
+  @@map("permissions")
+}
+
+model Profiles {
+  id                  String               @id @map("id")
+  profile_name        String               @map("profile_name")
+  profile_permissions ProfilePermissions[]
+  user_profiles       UserProfiles[]
+
+  @@map("profiles")
+}
+
+model ProfilePermissions {
+  id               String @id @map("id")
+  fk_profile_id    String @map("fk_profile_id")
+  fk_permission_id String @map("fk_permission_id")
+
+  profiles    Profiles    @relation(fields: [fk_profile_id], references: [id], onDelete: Cascade)
+  permissions Permissions @relation(fields: [fk_permission_id], references: [id], onDelete: Cascade)
+
+  @@map("profile_permissions")
+}
+
+model Users {
+  id                 String             @id @map("id")
+  name               String             @map("name")
+  email              String             @unique @map("email")
+  username           String?            @map("username")
+  password           String             @map("password")
+  company            String?            @map("company")
+  position           String?            @map("position")
+  nationality        String?            @map("nationality")
+  verified           Boolean?           @map("verified")
+  description        String?            @map("description")
+  profile_img_url    String?            @map("profile_img_url")
+  created_at         DateTime           @default(now()) @map("created_at")
+  updated_at         DateTime           @updatedAt @map("updated_at")
+  user_profiles      UserProfiles?
+  user_phone_numbers UserPhoneNumbers[]
+  skills             Skills[]
+  reviews            Reviews[]
+  mentoring_plans    MentoringPlans?
+  mentorings         Mentorings?
+  mentoring_clients  MentoringClients?
+
+  @@map("users")
+}
+
+model UserProfiles {
+  id            String  @id @map("id")
+  fk_user_id    String? @unique @map("fk_user_id")
+  fk_profile_id String  @map("fk_profile_id")
+
+  users    Users?   @relation(fields: [fk_user_id], references: [id])
+  profiles Profiles @relation(fields: [fk_profile_id], references: [id])
+
+  @@map("user_profiles")
+}
+
+model PhoneNumbers {
+  id                 String             @id @map("id")
+  number             String             @map("number")
+  created_at         DateTime           @default(now()) @map("created_at")
+  updated_at         DateTime           @updatedAt @map("updated_at")
+  user_phone_numbers UserPhoneNumbers[]
+
+  @@map("phone_numbers")
+}
+
+model UserPhoneNumbers {
+  id                 String @id @map("id")
+  fk_user_id         String @map("fk_user_id")
+  fk_phone_number_id String @map("fk_phone_number_id")
+
+  users         Users        @relation(fields: [fk_user_id], references: [id], onDelete: Cascade)
+  phone_numbers PhoneNumbers @relation(fields: [fk_phone_number_id], references: [id], onDelete: Cascade)
+
+  @@map("user_phone_numbers")
+}
+
+model KnowledgeAreas {
+  id   String @id @map("id")
+  name String @map("name")
+
+  skills Skills[]
+
+  @@map("knowledge_areas")
+}
+
+model Skills {
+  id                   String @id @map("id")
+  name                 String @map("name")
+  fk_user_id           String @map("fk_user_id")
+  fk_knowledge_area_id String @map("fk_knowledge_area_id")
+
+  users          Users          @relation(fields: [fk_user_id], references: [id])
+  knowledgeAreas KnowledgeAreas @relation(fields: [fk_knowledge_area_id], references: [id])
+
+  @@map("skills")
+}
+
+model MentoringPlans {
+  id       String   @id @map("id")
+  cost     Float    @map("cost")
+  duration DateTime @map("duration")
+
+  fk_user_id String? @unique @map("fk_user_id")
+  users      Users?  @relation(fields: [fk_user_id], references: [id], onDelete: Cascade)
+
+  @@map("mentoring_plans")
+}
+
+model Mentorings {
+  id   String   @id @map("id")
+  date DateTime @map("date")
+
+  fk_user_id String @unique @map("fk_user_id")
+  users      Users? @relation(fields: [fk_user_id], references: [id])
+
+  mentoring_clients  MentoringClients[]
+  mentoring_statuses MentoringStatuses[]
+
+  @@map("mentorings")
+}
+
+model MentoringClients {
+  id String @id @map("id")
+
+  fk_user_id      String? @unique @map("fk_user_id")
+  fk_mentoring_id String? @unique @map("fk_mentoring_id")
+
+  users      Users?      @relation(fields: [fk_user_id], references: [id])
+  mentorings Mentorings? @relation(fields: [fk_mentoring_id], references: [id])
+
+  @@map("mentoring_clients")
+}
+
+model MentoringStatuses {
+  id   String @id @map("id")
+  name String @map("name")
+
+  fk_mentoring_id String?     @unique @map("fk_mentoring_id")
+  mentorings      Mentorings? @relation(fields: [fk_mentoring_id], references: [id])
+
+  @@map("mentoring_statuses")
+}
+
+model Reviews {
+  id         String   @id @map("id")
+  rating     Int      @map("rating")
+  comment    String   @map("comment")
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  fk_user_id String @map("fk_user_id")
+  users      Users  @relation(fields: [fk_user_id], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
