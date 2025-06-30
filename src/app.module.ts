@@ -6,12 +6,17 @@ import { AccountModule } from './modules/accounts/accounts.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { LoggerModule } from 'nestjs-pino';
 import { MentorModule } from './modules/mentor/mentor.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     AuthModule,
     AccountModule,
     DatabaseModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL || 'debug',
