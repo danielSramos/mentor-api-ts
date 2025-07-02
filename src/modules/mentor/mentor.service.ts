@@ -11,7 +11,6 @@ export class MentorService {
   ) {}
 
   async findAllMentors() {
-    console.log('passou aqui');
     try {
       this.logger.info({}, 'services > mentor > findAllMentors > params');
 
@@ -75,7 +74,6 @@ export class MentorService {
 
   async findMentorsByKnowledgeArea(knowledgeAreaId: string) {
     try {
-      console.log('PASSOU AQUI');
       this.logger.info({}, 'services > mentor > findMentorById > params');
       const mentorsByKnowledgeArea = await this.db.users.findMany({
         where: {
@@ -97,7 +95,6 @@ export class MentorService {
       if (!mentorsByKnowledgeArea) {
         throw new NotFoundException('Mentors not found');
       }
-      console.log(mentorsByKnowledgeArea);
       return mentorsByKnowledgeArea;
     } catch (error) {
       this.logger.error(

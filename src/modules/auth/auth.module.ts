@@ -8,6 +8,7 @@ import { AccountRepository } from '../accounts/accounts.repository';
 import { DatabaseService } from '../database/database.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AccountModule } from '../accounts/accounts.module';
+import { bcryptProvider } from './bcrypt.provider';
 
 @Module({
   imports: [
@@ -15,9 +16,9 @@ import { AccountModule } from '../accounts/accounts.module';
       defaultStrategy: 'jwt',
     }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: "CHAVEJWT", //process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN,
+        expiresIn: "7d" //process.env.JWT_EXPIRES_IN,
       },
     }),
     AccountModule,
@@ -29,6 +30,7 @@ import { AccountModule } from '../accounts/accounts.module';
     LoggerService,
     AccountRepository,
     DatabaseService,
+    bcryptProvider
   ],
 })
 export class AuthModule {}

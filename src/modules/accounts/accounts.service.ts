@@ -2,22 +2,17 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  Param,
 } from '@nestjs/common';
-import { AccountRepository } from './accounts.repository';
 import { LoggerService } from '../logger/logger.service';
-import { AccountsMapper } from './accounts.mapper';
 import { CreateAccountInput, UpdateAccountInput } from './dtos/account.dto';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { AccountEntity } from './accounts.entity';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class AccountService {
   constructor(
     private readonly logger: LoggerService,
-    private readonly repository: AccountRepository,
     private readonly db: DatabaseService,
   ) {}
 
@@ -126,7 +121,11 @@ export class AccountService {
         'services > accounts > update > params',
       );
 
-      const account = await this.repository.findById(id);
+      const account = await this.db.users.findUnique({
+        where: {
+          id,
+        }
+      });
 
       this.logger.info(account, 'account');
 
@@ -134,7 +133,7 @@ export class AccountService {
         throw new NotFoundException('Account not found');
       }
 
-      Object.assign(account, input);
+      //Object.assign(account, input);
 
       await this.db.users.update({
         data: {
