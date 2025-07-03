@@ -8,7 +8,7 @@ export class MentorService {
   constructor(
     private readonly logger: LoggerService,
     private readonly db: DatabaseService,
-  ) {}
+  ) { }
 
   async findAllMentors() {
     try {
@@ -22,12 +22,39 @@ export class MentorService {
             },
           },
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          company: true,
+          position: true,
+          nationality: true,
+          verified: true,
+          description: true,
+          profile_img_url: true,
+          created_at: true,
+          updated_at: true,
           user_profiles: {
-            include: {
-              profiles: true,
+            select: {
+              id: true,
+              fk_profile_id: true,
+              profiles: {
+                select: {
+                  id: true,
+                  profile_name: true,
+                },
+              },
             },
           },
+          skills: {
+            select: {
+              id: true,
+              name: true,
+              fk_knowledge_area_id: true,
+              knowledgeAreas: { select: { id: true, name: true } }
+            }
+          }
         },
       });
 
@@ -49,12 +76,41 @@ export class MentorService {
         where: {
           fk_user_id: mentorId,
         },
+        select: {
+          id: true,
+          fk_profile_id: true,
+          profiles: { select: { id: true, profile_name: true } }
+        }
       });
 
       const mentor = await this.db.users.findUnique({
         where: {
           id: mentorId,
-          user_profiles: mentorProfile,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          user_profiles: {
+            select: {
+              id: true,
+              fk_profile_id: true,
+              profiles: {
+                select: {
+                  id: true,
+                  profile_name: true,
+                },
+              },
+            },
+          },
+          skills: {
+            select: {
+              id: true,
+              name: true,
+              fk_knowledge_area_id: true,
+              knowledgeAreas: { select: { id: true, name: true } }
+            }
+          }
         },
       });
 
@@ -144,7 +200,7 @@ export class MentorService {
     }
   }
 
-  async addNewSkill(userId: string, skills: any) {
+  async addNewSkill(userId: string, skillInput: { name: string; knowledgeAreaId: string }) {
     try {
       this.logger.info({ userId }, 'services > mentor > addNewSkills > params');
 
@@ -154,15 +210,18 @@ export class MentorService {
         },
       });
 
-      const skillWithUserId = skills.map((skill: any) => ({
-        ...skill,
+      const newSkillData = {
         id: randomUUID(),
+        name: skillInput.name,
         fk_user_id: userId,
-      }));
+        fk_knowledge_area_id: skillInput.knowledgeAreaId,
+      };
 
-      await this.db.skills.createMany({
-        data: skillWithUserId,
+      const createdSkill = await this.db.skills.create({
+        data: newSkillData,
       });
+
+      return createdSkill;
     } catch (error) {
       this.logger.error(error, 'services > mentor > addNewSkills > exception');
       throw error;

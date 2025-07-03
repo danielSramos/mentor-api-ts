@@ -10,6 +10,7 @@ import { LoginAccountInput } from './dtos/account.dto';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/strategies/jwt.strategy';
+import { bcryptProvider } from '../auth/bcrypt.provider';
 
 @Module({
   imports: [LoggerModule, DatabaseModule],
@@ -22,6 +23,7 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
     AuthService,
     JwtService,
     JwtStrategy,
+    bcryptProvider
   ],
   controllers: [AccountController],
 })

@@ -24,8 +24,6 @@ describe('AuthService', () => {
         { provide: AccountService, useValue: { findByEmail: jest.fn() } },
         { provide: JwtService, useValue: { sign: jest.fn() } },
         {
-          // >>>>> MUDE ISSO AQUI <<<<<
-          // Use o BCRYPT_PROVIDER importado, não a string literal 'bcrypt'
           provide: BCRYPT_PROVIDER,
           useValue: {
             compare: mockBcryptCompare,
@@ -48,7 +46,6 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return an access token and account on successful login', async () => {
-      // DECLARE loginInput, hashedPassword, mockAccount DENTRO DE CADA IT
       const loginInput = { email: 'test@example.com', password: 'plainPassword' };
       const hashedPassword = 'hashedPassword123';
       const mockAccount = {
@@ -83,7 +80,6 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException if password validation fails', async () => {
-      // DECLARE loginInput, hashedPassword, mockAccount DENTRO DE CADA IT
       const loginInput = { email: 'test@example.com', password: 'plainPassword' };
       const hashedPassword = 'hashedPassword123';
       const mockAccount = {
@@ -104,10 +100,9 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException if account is not found', async () => {
-      // DECLARE loginInput, hashedPassword, mockAccount DENTRO DE CADA IT
       const loginInput = { email: 'test@example.com', password: 'plainPassword' };
-      const hashedPassword = 'hashedPassword123'; // Pode ser removido, não é usado neste caso específico, mas manter é inofensivo
-      const mockAccount = { // Este mockAccount não será usado para simular 'not found', mas a declaração é mantida por consistência
+      const hashedPassword = 'hashedPassword123';
+      const mockAccount = {
         id: '1', name: 'Test User', email: loginInput.email, password: hashedPassword,
         username: 'testuser', company: null, created_at: new Date('2025-07-01T19:44:23.021Z'),
         description: null, nationality: null, position: null, profile_img_url: null,

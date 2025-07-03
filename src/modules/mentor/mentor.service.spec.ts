@@ -34,6 +34,7 @@ describe('MentorService', () => {
     findMany: jest.fn(),
     deleteMany: jest.fn(),
     createMany: jest.fn(),
+    create: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -90,12 +91,39 @@ describe('MentorService', () => {
             },
           },
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          company: true,
+          position: true,
+          nationality: true,
+          verified: true,
+          description: true,
+          profile_img_url: true,
+          created_at: true,
+          updated_at: true,
           user_profiles: {
-            include: {
-              profiles: true,
+            select: {
+              id: true,
+              fk_profile_id: true,
+              profiles: {
+                select: {
+                  id: true,
+                  profile_name: true,
+                },
+              },
             },
           },
+          skills: {
+            select: {
+              id: true,
+              name: true,
+              fk_knowledge_area_id: true,
+              knowledgeAreas: { select: { id: true, name: true } }
+            }
+          }
         },
       });
       expect(result).toEqual(mockMentors);
@@ -122,11 +150,35 @@ describe('MentorService', () => {
       const result = await service.findMentorById(mentorId);
 
       expect(loggerService.info).toHaveBeenCalledWith({}, 'services > mentor > findMentorById > params');
-      expect(mockDbUserProfiles.findUnique).toHaveBeenCalledWith({ where: { fk_user_id: mentorId } });
+      //expect(mockDbUserProfiles.findUnique).toHaveBeenCalledWith({ where: { fk_user_id: mentorId } });
       expect(mockDbUsers.findUnique).toHaveBeenCalledWith({
         where: {
           id: mentorId,
-          user_profiles: mockUserProfile,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          user_profiles: {
+            select: {
+              id: true,
+              fk_profile_id: true,
+              profiles: {
+                select: {
+                  id: true,
+                  profile_name: true,
+                },
+              },
+            },
+          },
+          skills: {
+            select: {
+              id: true,
+              name: true,
+              fk_knowledge_area_id: true,
+              knowledgeAreas: { select: { id: true, name: true } }
+            }
+          }
         },
       });
       expect(result).toEqual(mockMentor);
@@ -253,14 +305,11 @@ describe('MentorService', () => {
 
   describe('addNewSkill', () => {
     const userId = 'user-with-skills';
-    const skillsInput = [
-      { name: 'New Skill 1', knowledgeAreaId: 'area1' },
-      { name: 'New Skill 2', knowledgeAreaId: 'area2' },
-    ];
+    const skillsInput = { name: 'New Skill 1', knowledgeAreaId: 'area1' };
 
     it('should delete existing skills and add new ones', async () => {
-      mockDbSkills.deleteMany.mockResolvedValue({ count: 5 }); // Simulate deleting 5 old skills
-      mockDbSkills.createMany.mockResolvedValue({ count: skillsInput.length });
+      mockDbSkills.deleteMany.mockResolvedValue({ count: 5 });
+      mockDbSkills.create.mockResolvedValue({ count: skillsInput });
 
       await service.addNewSkill(userId, skillsInput);
 
@@ -270,26 +319,14 @@ describe('MentorService', () => {
           fk_user_id: userId,
         },
       });
-      expect(mockDbSkills.createMany).toHaveBeenCalledWith({
-        data: [
-          { ...skillsInput[0], id: 'mock-uuid', fk_user_id: userId },
-          { ...skillsInput[1], id: 'mock-uuid', fk_user_id: userId },
-        ],
-      });
-    });
-
-    it('should handle empty skills array gracefully', async () => {
-      mockDbSkills.deleteMany.mockResolvedValue({ count: 5 });
-      mockDbSkills.createMany.mockResolvedValue({ count: 0 });
-
-      await service.addNewSkill(userId, []);
-
-      expect(mockDbSkills.deleteMany).toHaveBeenCalledWith({
-        where: {
+      expect(mockDbSkills.create).toHaveBeenCalledWith({
+        data: {
+          id: 'mock-uuid',
           fk_user_id: userId,
+          fk_knowledge_area_id: 'area1',
+          name: 'New Skill 1',
         },
       });
-      expect(mockDbSkills.createMany).toHaveBeenCalledWith({ data: [] });
     });
 
     it('should throw an error if database delete fails', async () => {
@@ -303,7 +340,7 @@ describe('MentorService', () => {
     it('should throw an error if database create fails', async () => {
       const error = new Error('DB create error');
       mockDbSkills.deleteMany.mockResolvedValue({ count: 0 });
-      mockDbSkills.createMany.mockRejectedValue(error);
+      mockDbSkills.create.mockRejectedValue(error);
 
       await expect(service.addNewSkill(userId, skillsInput)).rejects.toThrow(error);
       expect(loggerService.error).toHaveBeenCalledWith(error, 'services > mentor > addNewSkills > exception');

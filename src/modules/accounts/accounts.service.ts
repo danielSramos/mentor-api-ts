@@ -14,21 +14,33 @@ export class AccountService {
   constructor(
     private readonly logger: LoggerService,
     private readonly db: DatabaseService,
-  ) {}
+  ) { }
 
   async findAll() {
     try {
       this.logger.info({}, 'services > accounts > findAll > params');
 
       const accounts = await this.db.users.findMany({
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          company: true,
+          position: true,
+          nationality: true,
+          verified: true,
+          description: true,
+          profile_img_url: true,
+          created_at: true,
+          updated_at: true,
           skills: {
             select: {
               id: true,
               name: true,
-            },
-          },
-        },
+            }
+          }
+        }
       });
 
       this.logger.info({}, 'services > accounts > findAll > success');

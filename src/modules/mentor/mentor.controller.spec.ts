@@ -38,7 +38,7 @@ describe('MentorController', () => {
     mentorService = module.get<MentorService>(MentorService);
     loggerService = module.get<LoggerService>(LoggerService);
 
-    jest.clearAllMocks(); // Clear mocks before each test
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -128,7 +128,7 @@ describe('MentorController', () => {
 
       const result = await controller.findMentorByKnowledgeArea(knowledgeAreaId);
 
-      expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > findMentorByKnowledgeArea'); // Logger message from source
+      expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > findMentorByKnowledgeArea');
       expect(mentorService.findMentorsByKnowledgeArea).toHaveBeenCalledWith(knowledgeAreaId);
       expect(result).toEqual(mockMentors);
     });
@@ -157,13 +157,13 @@ describe('MentorController', () => {
     it('should add new skills and return CREATED status', async () => {
       const mentorId = 'mentor-with-skills';
       const createSkills: CreateSkills = { name: 'New Skill', knowledgeAreaId: 'new-area-id' };
-      (mentorService.addNewSkill as jest.Mock).mockResolvedValue(undefined); // Service returns void
+      (mentorService.addNewSkill as jest.Mock).mockResolvedValue(undefined);
 
       const result = await controller.addNewSkill(mentorId, createSkills);
 
-      expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > deleteSkills'); // Logger message from source
+      expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > deleteSkills');
       expect(mentorService.addNewSkill).toHaveBeenCalledWith(mentorId, createSkills);
-      expect(result).toEqual({ status: HttpStatus.CREATED, content: undefined }); // content is undefined as service returns void
+      expect(result).toEqual({ status: HttpStatus.CREATED, content: undefined });
     });
 
     it('should propagate errors from service', async () => {

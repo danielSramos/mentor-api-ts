@@ -1,24 +1,21 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
   HttpStatus,
   Param,
-  Post,
+  Post
 } from '@nestjs/common';
 import { LoggerService } from '../logger/logger.service';
-import { MentorService } from './mentor.service';
-import { AuthService } from '../auth/auth.service';
 import { CreateSkills } from './dtos/mentor.dto';
+import { MentorService } from './mentor.service';
 
 @Controller('mentors')
 export class MentorController {
   constructor(
     private readonly logger: LoggerService,
     private readonly service: MentorService,
-  ) {}
+  ) { }
 
   @Get('/skills')
   findAllSkills() {
@@ -55,12 +52,11 @@ export class MentorController {
   @Post('/:mentorId/createSkills')
   async addNewSkill(
     @Param('mentorId') mentorId: string,
-    @Body() createSkills: CreateSkills,
+    @Body() createSkillsDto: CreateSkills,
   ) {
     this.logger.info({}, 'controller > accounts > deleteSkills');
-
-    const newSkills = await this.service.addNewSkill(mentorId, createSkills);
-    return { status: HttpStatus.CREATED, content: newSkills };
+    const newSkill = await this.service.addNewSkill(mentorId, createSkillsDto);
+    return { status: HttpStatus.CREATED, content: newSkill };
   }
 
   @Get('/knowledgeAreas/list')

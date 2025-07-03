@@ -9,10 +9,10 @@ import { randomUUID } from 'crypto';
 
 jest.mock('bcrypt');
 jest.mock('crypto', () => {
-  const actual = jest.requireActual('crypto'); // Carrega o módulo 'crypto' real
+  const actual = jest.requireActual('crypto');
   return {
-    ...actual, // Exporta todas as funções reais de 'crypto'
-    randomUUID: jest.fn(() => 'mock-uuid'), // Apenas substitui randomUUID
+    ...actual,
+    randomUUID: jest.fn(() => 'mock-uuid'),
   };
 });
 
@@ -20,7 +20,7 @@ describe('AccountService', () => {
   let service: AccountService;
   let databaseService: DatabaseService;
   let loggerService: LoggerService;
-  let module: TestingModule; // Adicionada a variável 'module'
+  let module: TestingModule;
 
   const mockUsers = {
     findMany: jest.fn(),
@@ -47,7 +47,6 @@ describe('AccountService', () => {
             users: mockUsers,
           },
         },
-        // AccountRepository removido das provisões, pois não é mais usado
       ],
     }).compile();
 
@@ -55,7 +54,6 @@ describe('AccountService', () => {
     databaseService = module.get<DatabaseService>(DatabaseService);
     loggerService = module.get<LoggerService>(LoggerService);
 
-    // Reset mocks before each test
     for (const mockFn of Object.values(mockUsers)) {
       (mockFn as jest.Mock).mockClear();
     }
@@ -71,12 +69,25 @@ describe('AccountService', () => {
 
   describe('findAll', () => {
     it('should return all accounts', async () => {
-      const mockAccounts = [{ id: '1', name: 'User 1' }, { id: '2', name: 'User 2' }];
+      // Mock de contas que o serviço retornaria (com os campos do SELECT)
+      const mockAccounts = [
+        { id: '1', name: 'User 1', email: 'user1@example.com', username: null, company: null,
+          position: null, nationality: null, verified: false, description: null,
+          profile_img_url: null, created_at: new Date(), updated_at: new Date(),
+          skills: []
+        },
+        { id: '2', name: 'User 2', email: 'user2@example.com', username: null, company: null,
+          position: null, nationality: null, verified: false, description: null,
+          profile_img_url: null, created_at: new Date(), updated_at: new Date(),
+          skills: [{ id: 's1', name: 'skill1' }]
+        },
+      ];
       mockUsers.findMany.mockResolvedValue(mockAccounts);
 
       const result = await service.findAll();
 
       expect(mockUsers.findMany).toHaveBeenCalledWith({
+        // EXPECTATIVA ATUALIZADA PARA O SELECT REAL DO SERVIÇO
         select: {
           id: true,
           name: true,
@@ -94,8 +105,8 @@ describe('AccountService', () => {
             select: {
               id: true,
               name: true,
-            }
-          }
+            },
+          },
         },
       });
       expect(result).toEqual(mockAccounts);
@@ -114,7 +125,12 @@ describe('AccountService', () => {
 
   describe('findById', () => {
     it('should return an account by id', async () => {
-      const mockAccount = { id: '1', name: 'User 1' };
+      const mockAccount = {
+        id: '1', name: 'User 1', email: 'user1@example.com', password: 'hashedpassword',
+        username: null, company: null, position: null, nationality: null,
+        verified: false, description: null, profile_img_url: null,
+        created_at: new Date(), updated_at: new Date()
+      };
       mockUsers.findUnique.mockResolvedValue(mockAccount);
 
       const result = await service.findById('1');
@@ -144,7 +160,12 @@ describe('AccountService', () => {
 
   describe('findByEmail', () => {
     it('should return an account by email', async () => {
-      const mockAccount = { id: '1', email: 'test@example.com' };
+      const mockAccount = {
+        id: '1', email: 'test@example.com', name: 'Test User', password: 'hashedpassword',
+        username: null, company: null, position: null, nationality: null,
+        verified: false, description: null, profile_img_url: null,
+        created_at: new Date(), updated_at: new Date()
+      };
       mockUsers.findUnique.mockResolvedValue(mockAccount);
 
       const result = await service.findByEmail('test@example.com');
@@ -186,7 +207,7 @@ describe('AccountService', () => {
     });
 
     it('should create a new account', async () => {
-      jest.spyOn(service, 'findByEmail').mockResolvedValue(undefined); // Email does not exist
+      jest.spyOn(service, 'findByEmail').mockResolvedValue(undefined);
       mockUsers.create.mockResolvedValue({
         id: 'mock-uuid',
         ...createInput,
@@ -215,7 +236,6 @@ describe('AccountService', () => {
     });
 
     it('should throw ConflictException if email already exists', async () => {
-      // Forneça um objeto mock que se assemelhe ao tipo 'User' completo do Prisma
       jest.spyOn(service, 'findByEmail').mockResolvedValue({
         id: 'some-existing-id',
         name: 'Existing User',
@@ -256,7 +276,6 @@ describe('AccountService', () => {
       name: 'Updated Name',
       phoneNumber: '987654321',
     };
-    // Garanta que o mock de existingAccount tenha todas as propriedades do seu tipo User/AccountEntity
     const existingAccount = {
       id: accountId,
       name: 'Old Name',
@@ -274,13 +293,11 @@ describe('AccountService', () => {
     };
 
     it('should update an existing account', async () => {
-      // Usa mockUsers.findUnique em vez de accountRepository.findById
       mockUsers.findUnique.mockResolvedValue(existingAccount);
       mockUsers.update.mockResolvedValue({ ...existingAccount, ...updateInput });
 
       await service.update(accountId, updateInput);
 
-      // Verifica a chamada para mockUsers.findUnique
       expect(mockUsers.findUnique).toHaveBeenCalledWith({ where: { id: accountId } });
       expect(mockUsers.update).toHaveBeenCalledWith({
         data: {
@@ -294,12 +311,10 @@ describe('AccountService', () => {
     });
 
     it('should throw NotFoundException if account not found for update', async () => {
-      // Usa mockUsers.findUnique
       mockUsers.findUnique.mockResolvedValue(undefined);
 
       await expect(service.update(accountId, updateInput)).rejects.toThrow(NotFoundException);
       await expect(service.update(accountId, updateInput)).rejects.toThrow('Account not found');
-      // Verifica a chamada para mockUsers.findUnique
       expect(mockUsers.findUnique).toHaveBeenCalledWith({ where: { id: accountId } });
       expect(mockUsers.update).not.toHaveBeenCalled();
       expect(loggerService.error).toHaveBeenCalledWith(expect.any(NotFoundException), 'services > accounts > update > exception');
@@ -307,7 +322,6 @@ describe('AccountService', () => {
 
     it('should throw an error if database update fails', async () => {
       const error = new Error('DB update error');
-      // Usa mockUsers.findUnique
       mockUsers.findUnique.mockResolvedValue(existingAccount);
       mockUsers.update.mockRejectedValue(error);
 
@@ -320,7 +334,7 @@ describe('AccountService', () => {
     const accountId = 'account-id-to-delete';
 
     it('should delete an account', async () => {
-      mockUsers.delete.mockResolvedValue({ count: 1 }); // Simulate a successful delete
+      mockUsers.delete.mockResolvedValue({ count: 1 });
 
       await service.delete(accountId);
 

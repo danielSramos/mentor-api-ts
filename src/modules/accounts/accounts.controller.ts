@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   UseGuards,
@@ -23,6 +25,7 @@ export class AccountController {
   ) {}
 
   @Post('/login')
+  @HttpCode(HttpStatus.OK)
   login(@Body() body: LoginAccountInput) {
     this.logger.info({}, 'controller > accounts > login');
 

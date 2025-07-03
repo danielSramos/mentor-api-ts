@@ -1,14 +1,13 @@
 import { JwtStrategy } from './jwt.strategy';
 import { UnauthorizedException } from '@nestjs/common';
 import { AccountService } from 'src/modules/accounts/accounts.service';
-import { JwtPayload } from './jwt.payload'; // Assumindo que JwtPayload é definido aqui
+import { JwtPayload } from './jwt.payload';
 
 describe('JwtStrategy', () => {
   let jwtStrategy: JwtStrategy;
   let accountService: AccountService;
 
   beforeEach(() => {
-    // Mock do AccountService
     accountService = {
       findByEmail: jest.fn(),
     } as any;

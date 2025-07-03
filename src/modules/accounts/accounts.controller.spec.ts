@@ -43,7 +43,7 @@ describe('AccountController', () => {
     authService = module.get<AuthService>(AuthService);
     loggerService = module.get<LoggerService>(LoggerService);
 
-    jest.clearAllMocks(); // Clear mocks before each test
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -65,7 +65,7 @@ describe('AccountController', () => {
 
     it('should throw UnauthorizedException if login fails (propagated from service)', async () => {
       const loginInput: LoginAccountInput = { email: 'wrong@example.com', password: 'wrong' };
-      (authService.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials')); // Simulate service throwing error
+      (authService.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
 
       await expect(controller.login(loginInput)).rejects.toThrow('Invalid credentials');
       expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > login');
@@ -97,7 +97,7 @@ describe('AccountController', () => {
   describe('create', () => {
     it('should create an account successfully', async () => {
       const createInput: CreateAccountInput = { name: 'New User', email: 'new@example.com', password: 'password123' };
-      (accountService.create as jest.Mock).mockResolvedValue(undefined); // Service returns void
+      (accountService.create as jest.Mock).mockResolvedValue(undefined);
 
       await controller.create(createInput);
 
@@ -114,7 +114,6 @@ describe('AccountController', () => {
       await expect(controller.create(createInput)).rejects.toThrow('Email already exists');
       expect(loggerService.info).toHaveBeenCalledWith({}, 'controller > accounts > create');
       expect(accountService.create).toHaveBeenCalledWith(createInput);
-      // Logger for success should not be called if an error occurs
       expect(loggerService.info).not.toHaveBeenCalledWith({}, 'controller > accounts > create > sucess');
     });
 
