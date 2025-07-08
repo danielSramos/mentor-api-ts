@@ -6,10 +6,10 @@ import { NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 jest.mock('crypto', () => {
-  const actual = jest.requireActual('crypto'); // Carrega o módulo 'crypto' real
+  const actual = jest.requireActual('crypto');
   return {
-    ...actual, // Exporta todas as funções reais de 'crypto'
-    randomUUID: jest.fn(() => 'mock-uuid'), // Apenas substitui randomUUID
+    ...actual,
+    randomUUID: jest.fn(() => 'mock-uuid'),
   };
 });
 describe('MentorService', () => {
@@ -150,7 +150,6 @@ describe('MentorService', () => {
       const result = await service.findMentorById(mentorId);
 
       expect(loggerService.info).toHaveBeenCalledWith({}, 'services > mentor > findMentorById > params');
-      //expect(mockDbUserProfiles.findUnique).toHaveBeenCalledWith({ where: { fk_user_id: mentorId } });
       expect(mockDbUsers.findUnique).toHaveBeenCalledWith({
         where: {
           id: mentorId,
@@ -220,7 +219,7 @@ describe('MentorService', () => {
 
       const result = await service.findMentorsByKnowledgeArea(knowledgeAreaId);
 
-      expect(loggerService.info).toHaveBeenCalledWith({}, 'services > mentor > findMentorById > params'); // Logger message seems incorrect in source, using existing one.
+      expect(loggerService.info).toHaveBeenCalledWith({}, 'services > mentor > findMentorById > params');
       expect(mockDbUsers.findMany).toHaveBeenCalledWith({
         where: {
           skills: {
@@ -241,12 +240,8 @@ describe('MentorService', () => {
     });
 
     it('should throw NotFoundException if no mentors found for the knowledge area', async () => {
-      mockDbUsers.findMany.mockResolvedValue(null); // Or an empty array, depending on Prisma's actual return for no results
+      mockDbUsers.findMany.mockResolvedValue(null);
 
-      // Note: A `findMany` returning `null` is unlikely, it usually returns `[]`.
-      // The current service code throws NotFound if `!mentorsByKnowledgeArea`.
-      // If Prisma returns `[]` (empty array) for no results, the `if (!mentorsByKnowledgeArea)` check will not throw.
-      // Adjusting mock to simulate `null` as per service logic.
       await expect(service.findMentorsByKnowledgeArea(knowledgeAreaId)).rejects.toThrow(NotFoundException);
       await expect(service.findMentorsByKnowledgeArea(knowledgeAreaId)).rejects.toThrow('Mentors not found');
       expect(loggerService.error).toHaveBeenCalledWith(expect.any(NotFoundException), 'services > accounts > findMentorByKnowledgeArea > exception'); // Logger message seems incorrect in source, using existing one.
